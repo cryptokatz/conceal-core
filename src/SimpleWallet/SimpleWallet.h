@@ -89,6 +89,7 @@ namespace CryptoNote
     bool get_tx_proof(const std::vector<std::string> &args);    
     bool optimize_all_outputs(const std::vector<std::string> &args);
     bool listTransfers(const std::vector<std::string> &args);
+    bool get_tx_key(const std::vector<std::string> &args);
     bool transfer(const std::vector<std::string> &args);
     bool print_address(const std::vector<std::string> &args = std::vector<std::string>());
     bool save(const std::vector<std::string> &args);
