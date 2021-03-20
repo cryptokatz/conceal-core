@@ -150,6 +150,7 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
         {"getblockheaderbyheight", {makeMemberMethod(&RpcServer::on_get_block_header_by_height), false}},
         {"getblocktimestamp", {makeMemberMethod(&RpcServer::on_get_block_timestamp_by_height), true}},
         {"getblockbyheight", {makeMemberMethod(&RpcServer::on_get_block_details_by_height), true}},
+        {"getblockbyhash", {makeMemberMethod(&RpcServer::f_on_block_json), true}},
 
         /* Legacy calls we will maintain for a few more releases */
         {"on_getblockhash", {makeMemberMethod(&RpcServer::on_getblockhash), false}},
