@@ -194,26 +194,166 @@ bool RpcServer::isCoreReady() {
   return m_core.currency().isTestnet() || m_p2p.get_payload_object().isSynchronized();
 }
 
+bool RpcServer::getBlockDetails(uint32_t height, f_block_details_response &detail)
+{
+  try
+  { 
+      if (m_core.getCurrentBlockchainHeight() <= height)
+      {
+        throw JsonRpc::JsonRpcError{CORE_RPC_ERROR_CODE_TOO_BIG_HEIGHT,
+                                    std::string("Height is too big: ") + std::to_string(height) + ", current blockchain height = " + std::to_string(m_core.getCurrentBlockchainHeight() - 1)};
+      }
+      Crypto::Hash hash = m_core.getBlockIdByHeight(height);
+      Block blk;
+      if (!m_core.getBlockByHash(hash, blk))
+      {
+        throw JsonRpc::JsonRpcError{
+            CORE_RPC_ERROR_CODE_INTERNAL_ERROR,
+            "Internal error: can't get block by height. Height = " + height + '.'};
+      }
+      if (blk.baseTransaction.inputs.front().type() != typeid(BaseInput))
+      {
+        throw JsonRpc::JsonRpcError{
+            CORE_RPC_ERROR_CODE_INTERNAL_ERROR,
+            "Internal error: coinbase transaction in the block has the wrong type"};
+      }
 
+      block_header_response block_header;
 
+      uint32_t block_height = boost::get<BaseInput>(blk.baseTransaction.inputs.front()).blockIndex;
+      detail.height = block_height;
+      Crypto::Hash tmp_hash = m_core.getBlockIdByHeight(block_height);
+      bool is_orphaned = hash != tmp_hash;
 
+      fill_block_header_response(blk, is_orphaned, block_height, hash, block_header);
 
+      detail.major_version = block_header.major_version;
+      detail.minor_version = block_header.minor_version;
+      detail.timestamp = block_header.timestamp;
+      detail.prev_hash = block_header.prev_hash;
+      detail.nonce = block_header.nonce;
+      detail.hash = Common::podToHex(hash);
+      detail.orphan_status = is_orphaned;
+      detail.depth = m_core.get_current_blockchain_height() - detail.height - 1;
+      m_core.getBlockDifficulty(static_cast<uint32_t>(detail.height), detail.difficulty);
 
+      detail.reward = block_header.reward;
 
+      std::vector<size_t> blocksSizes;
+      if (!m_core.getBackwardBlocksSizes(detail.height, blocksSizes, parameters::CRYPTONOTE_REWARD_BLOCKS_WINDOW))
+      {
+        return false;
+      }
+      detail.sizeMedian = Common::medianValue(blocksSizes);
 
+      size_t blockSize = 0;
+      if (!m_core.getBlockSize(hash, blockSize))
+      {
+        return false;
+      }
+      detail.transactionsCumulativeSize = blockSize;
 
+      size_t blokBlobSize = getObjectBinarySize(blk);
+      size_t minerTxBlobSize = getObjectBinarySize(blk.baseTransaction);
+      detail.blockSize = blokBlobSize + detail.transactionsCumulativeSize - minerTxBlobSize;
 
+      uint64_t alreadyGeneratedCoins;
+      if (!m_core.getAlreadyGeneratedCoins(hash, alreadyGeneratedCoins))
+      {
+        return false;
+      }
+      detail.alreadyGeneratedCoins = std::to_string(alreadyGeneratedCoins);
 
+      if (!m_core.getGeneratedTransactionsNumber(detail.height, detail.alreadyGeneratedTransactions))
+      {
+        return false;
+      }
 
+      uint64_t prevBlockGeneratedCoins = 0;
+      if (detail.height > 0)
+      {
+        if (!m_core.getAlreadyGeneratedCoins(blk.previousBlockHash, prevBlockGeneratedCoins))
+        {
+          return false;
+        }
+      }
+      uint64_t maxReward = 0;
+      uint64_t currentReward = 0;
+      int64_t emissionChange = 0;
+      bool penalizeFee = blk.majorVersion >= 2;
+      size_t blockGrantedFullRewardZone = penalizeFee ? m_core.currency().blockGrantedFullRewardZone() :
+                                                      //m_core.currency().blockGrantedFullRewardZoneV1();
+                                              detail.effectiveSizeMedian = std::max(detail.sizeMedian, blockGrantedFullRewardZone);
 
+      if (!m_core.getBlockReward(detail.sizeMedian, 0, prevBlockGeneratedCoins, 0, detail.height, maxReward, emissionChange))
+      {
+        return false;
+      }
+      if (!m_core.getBlockReward(detail.sizeMedian, detail.transactionsCumulativeSize, prevBlockGeneratedCoins, 0, detail.height, currentReward, emissionChange))
+      {
+        return false;
+      }
 
+      detail.baseReward = maxReward;
+      if (maxReward == 0 && currentReward == 0)
+      {
+        detail.penalty = static_cast<double>(0);
+      }
+      else
+      {
+        if (maxReward < currentReward)
+        {
+          return false;
+        }
+        detail.penalty = static_cast<double>(maxReward - currentReward) / static_cast<double>(maxReward);
+      }
 
+      // Base transaction adding
+      f_transaction_short_response transaction_short;
+      transaction_short.hash = Common::podToHex(getObjectHash(blk.baseTransaction));
+      transaction_short.fee = 0;
+      transaction_short.amount_out = get_outs_money_amount(blk.baseTransaction);
+      transaction_short.size = getObjectBinarySize(blk.baseTransaction);
+      detail.transactions.push_back(transaction_short);
 
+      std::list<Crypto::Hash> missed_txs;
+      std::list<Transaction> txs;
+      m_core.getTransactions(blk.transactionHashes, txs, missed_txs);
 
+      detail.totalFeeAmount = 0;
 
+      for (const Transaction &tx : txs)
+      {
+        f_transaction_short_response transaction_short;
+        uint64_t amount_in = 0;
+        get_inputs_money_amount(tx, amount_in);
+        uint64_t amount_out = get_outs_money_amount(tx);
 
+        transaction_short.hash = Common::podToHex(getObjectHash(tx));
+        transaction_short.fee =
+            amount_in < amount_out + parameters::MINIMUM_FEE //account for interest in output, it always has minimum fee
+                ? parameters::MINIMUM_FEE
+                : amount_in - amount_out;
+        transaction_short.amount_out = amount_out;
+        transaction_short.size = getObjectBinarySize(tx);
+        detail.transactions.push_back(transaction_short);
 
+        detail.totalFeeAmount += transaction_short.fee;
+      }
 
+  }
+  catch (std::system_error &e)
+  {
+    throw JsonRpc::JsonRpcError{CORE_RPC_ERROR_CODE_INTERNAL_ERROR, e.what()};
+    return false;
+  }
+  catch (std::exception &e)
+  {
+    throw JsonRpc::JsonRpcError{CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Error: " + std::string(e.what())};
+    return false;
+  }
+  return true;
+}
 
 bool RpcServer::on_get_blocks_details_by_heights(const COMMAND_RPC_GET_BLOCKS_DETAILS_BY_HEIGHTS::request &req, COMMAND_RPC_GET_BLOCKS_DETAILS_BY_HEIGHTS::response &res)
 {
