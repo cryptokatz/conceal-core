@@ -12,6 +12,7 @@
 #include "crypto/hash.h"
 
 #include "Serialization/SerializationOverloads.h"
+#include "BlockchainExplorerData.h"
 
 namespace CryptoNote {
 //-----------------------------------------------
@@ -747,6 +748,32 @@ struct COMMAND_RPC_GET_BLOCK_TIMESTAMP_BY_HEIGHT
     }
   };
 };
+
+struct COMMAND_RPC_GET_BLOCK_DETAILS_BY_HEIGHT
+{
+  struct request
+  {
+    uint32_t blockHeight;
+
+    void serialize(ISerializer &s)
+    {
+      KV_MEMBER(blockHeight)
+    }
+  };
+
+  struct response
+  {
+    f_block_details_response block;
+    std::string status;
+
+    void serialize(ISerializer &s)
+    {
+      KV_MEMBER(status)
+      KV_MEMBER(block)
+    }
+  };
+};
+
 
 struct F_COMMAND_RPC_GET_TRANSACTION_DETAILS {
   struct request {
