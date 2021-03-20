@@ -152,6 +152,7 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
         {"getblockbyheight", {makeMemberMethod(&RpcServer::on_get_block_details_by_height), true}},
         {"getblockbyhash", {makeMemberMethod(&RpcServer::f_on_block_json), true}},
         {"getblocksbyheights", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_heights), true}},
+        {"getblocksbyhashes", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_hashes), true}},
 
         /* Legacy calls we will maintain for a few more releases */
         {"on_getblockhash", {makeMemberMethod(&RpcServer::on_getblockhash), false}},
@@ -536,6 +537,57 @@ bool RpcServer::on_get_blocks_details_by_heights(const COMMAND_RPC_GET_BLOCKS_DE
     return false;
   }
   res.status = CORE_RPC_STATUS_OK;
+  return true;
+}
+
+bool RpcServer::on_get_blocks_details_by_hashes(const COMMAND_RPC_GET_BLOCKS_DETAILS_BY_HASHES::request &req, COMMAND_RPC_GET_BLOCKS_DETAILS_BY_HASHES::response &rsp)
+{
+  try
+  {
+    if (req.blockHashes.size() > 1000)
+    {
+      throw JsonRpc::JsonRpcError{CORE_RPC_ERROR_CODE_WRONG_PARAM,
+                                  std::string("Requested blocks count: ") + std::to_string(req.blockHashes.size()) + " exceeded max limit of " + std::to_string(1000)};
+    }
+    std::vector<f_block_details_response> blockDetails;
+    f_block_details_response block_details;
+    for (const Crypto::Hash hash : req.blockHashes)
+    {
+      Block blk;
+      if (!m_core.getBlockByHash(hash, blk))
+      {
+        throw JsonRpc::JsonRpcError{
+            CORE_RPC_ERROR_CODE_INTERNAL_ERROR,
+            "Internal error: can't get block by hash. "};
+      }
+
+      if (blk.baseTransaction.inputs.front().type() != typeid(BaseInput))
+      {
+        throw JsonRpc::JsonRpcError{
+            CORE_RPC_ERROR_CODE_INTERNAL_ERROR,
+            "Internal error: coinbase transaction in the block has the wrong type"};
+      }
+
+      block_header_response block_header;
+      uint32_t block_height = boost::get<BaseInput>(blk.baseTransaction.inputs.front()).blockIndex;
+
+      bool r = getBlockDetails(block_height, block_details);
+      (r);
+      blockDetails.push_back(block_details);
+    }
+    rsp.blocks = std::move(blockDetails);
+  }
+  catch (std::system_error &e)
+  {
+    throw JsonRpc::JsonRpcError{CORE_RPC_ERROR_CODE_INTERNAL_ERROR, e.what()};
+    return false;
+  }
+  catch (std::exception &e)
+  {
+    throw JsonRpc::JsonRpcError{CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Error: " + std::string(e.what())};
+    return false;
+  }
+  rsp.status = CORE_RPC_STATUS_OK;
   return true;
 }
 
