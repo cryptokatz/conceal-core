@@ -127,6 +127,12 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
   using namespace JsonRpc;
 
   response.addHeader("Content-Type", "application/json");
+  if (!m_cors_domain.empty())
+  {
+    response.addHeader("Access-Control-Allow-Origin", m_cors_domain);
+    response.addHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    response.addHeader("Access-Control-Allow-Methods", "POST, GET");
+  }
 
   JsonRpcRequest jsonRequest;
   JsonRpcResponse jsonResponse;
@@ -137,6 +143,16 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
     jsonResponse.setId(jsonRequest.getId()); // copy id
 
     static std::unordered_map<std::string, RpcServer::RpcHandler<JsonMemberMethod>> jsonRpcHandlers = {
+        {"getblockcount", {makeMemberMethod(&RpcServer::on_getblockcount), true}},
+        {"getblockhash", {makeMemberMethod(&RpcServer::on_getblockhash), false}},
+        {"getblocktemplate", {makeMemberMethod(&RpcServer::on_getblocktemplate), false}},
+        {"getblockheaderbyhash", {makeMemberMethod(&RpcServer::on_get_block_header_by_hash), false}},
+        {"getblockheaderbyheight", {makeMemberMethod(&RpcServer::on_get_block_header_by_height), false}},
+        {"getblocktimestamp", {makeMemberMethod(&RpcServer::on_get_block_timestamp_by_height), true}},
+
+        /* Legacy calls we will maintain for a few more releases */
+        {"on_getblockhash", {makeMemberMethod(&RpcServer::on_getblockhash), false}},
+
         {"getaltblockslist", {makeMemberMethod(&RpcServer::on_alt_blocks_list_json), true}},
         {"f_blocks_list_json", {makeMemberMethod(&RpcServer::f_on_blocks_list_json), false}},
         {"f_block_json", {makeMemberMethod(&RpcServer::f_on_block_json), false}},
@@ -144,14 +160,10 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
         {"f_on_transactions_pool_json", {makeMemberMethod(&RpcServer::f_on_transactions_pool_json), false}},
         {"check_tx_proof", {makeMemberMethod(&RpcServer::k_on_check_tx_proof), false}},
         {"check_reserve_proof", {makeMemberMethod(&RpcServer::k_on_check_reserve_proof), false}},
-        {"getblockcount", {makeMemberMethod(&RpcServer::on_getblockcount), true}},
-        {"on_getblockhash", {makeMemberMethod(&RpcServer::on_getblockhash), false}},
-        {"getblocktemplate", {makeMemberMethod(&RpcServer::on_getblocktemplate), false}},
+
         {"getcurrencyid", {makeMemberMethod(&RpcServer::on_get_currency_id), true}},
         {"submitblock", {makeMemberMethod(&RpcServer::on_submitblock), false}},
-        {"getlastblockheader", {makeMemberMethod(&RpcServer::on_get_last_block_header), false}},
-        {"getblockheaderbyhash", {makeMemberMethod(&RpcServer::on_get_block_header_by_hash), false}},
-        {"getblockheaderbyheight", {makeMemberMethod(&RpcServer::on_get_block_header_by_height), false}}};
+        {"getlastblockheader", {makeMemberMethod(&RpcServer::on_get_last_block_header), false}}};
 
     auto it = jsonRpcHandlers.find(jsonRequest.getMethod());
     if (it == jsonRpcHandlers.end()) {
@@ -179,9 +191,18 @@ bool RpcServer::isCoreReady() {
   return m_core.currency().isTestnet() || m_p2p.get_payload_object().isSynchronized();
 }
 
-//
-// Binary handlers
-//
+bool RpcServer::on_get_block_timestamp_by_height(const COMMAND_RPC_GET_BLOCK_TIMESTAMP_BY_HEIGHT::request& req, COMMAND_RPC_GET_BLOCK_TIMESTAMP_BY_HEIGHT::response& res) {
+  if (m_core.getCurrentBlockchainHeight() <= req.height) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_TOO_BIG_HEIGHT,
+      std::string("To big height: ") + std::to_string(req.height) + ", current blockchain height = " + std::to_string(m_core.getCurrentBlockchainHeight()) };
+  }
+
+  res.status = CORE_RPC_STATUS_OK;
+
+  m_core.getBlockTimestamp(req.height, res.timestamp);
+
+  return true;
+}
 
 bool RpcServer::on_get_blocks(const COMMAND_RPC_GET_BLOCKS_FAST::request& req, COMMAND_RPC_GET_BLOCKS_FAST::response& res) {
   // TODO code duplication see InProcessNode::doGetNewBlocks()

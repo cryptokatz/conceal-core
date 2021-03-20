@@ -139,8 +139,24 @@ bool core::getTransaction(const Crypto::Hash &id, Transaction &tx, bool checkTxP
   return false;
 }
 
+bool core::getBlockTimestamp(uint32_t height, uint64_t &timestamp)
+{
+  if (height > getCurrentBlockchainHeight())
+  {
+    return false;
+  }
+
+  timestamp = m_blockchain.getBlockTimestamp(height);
+  return true;
+}
+
 bool core::get_alternative_blocks(std::list<Block>& blocks) {
   return m_blockchain.getAlternativeBlocks(blocks);
+}
+
+uint32_t core::getCurrentBlockchainHeight()
+{
+  return m_blockchain.getCurrentBlockchainHeight();
 }
 
 size_t core::get_alternative_blocks_count() {
