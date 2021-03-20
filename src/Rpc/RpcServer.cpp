@@ -153,11 +153,12 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
         {"getblockbyhash", {makeMemberMethod(&RpcServer::f_on_block_json), true}},
         {"getblocksbyheights", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_heights), true}},
         {"getblocksbyhashes", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_hashes), true}},
+        {"getblockslist", {makeMemberMethod(&RpcServer::f_on_blocks_list_json), true}},
+        {"getaltblockslist", {makeMemberMethod(&RpcServer::on_alt_blocks_list_json), true}},
+        {"getlastblockheader", {makeMemberMethod(&RpcServer::on_get_last_block_header), false}}
 
         /* Legacy calls we will maintain for a few more releases */
         {"on_getblockhash", {makeMemberMethod(&RpcServer::on_getblockhash), false}},
-
-        {"getaltblockslist", {makeMemberMethod(&RpcServer::on_alt_blocks_list_json), true}},
         {"f_blocks_list_json", {makeMemberMethod(&RpcServer::f_on_blocks_list_json), false}},
         {"f_block_json", {makeMemberMethod(&RpcServer::f_on_block_json), false}},
         {"f_transaction_json", {makeMemberMethod(&RpcServer::f_on_transaction_json), false}},
@@ -166,8 +167,9 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
         {"check_reserve_proof", {makeMemberMethod(&RpcServer::k_on_check_reserve_proof), false}},
 
         {"getcurrencyid", {makeMemberMethod(&RpcServer::on_get_currency_id), true}},
-        {"submitblock", {makeMemberMethod(&RpcServer::on_submitblock), false}},
-        {"getlastblockheader", {makeMemberMethod(&RpcServer::on_get_last_block_header), false}}};
+        {"submitblock", {makeMemberMethod(&RpcServer::on_submitblock), false}}
+
+    };
 
     auto it = jsonRpcHandlers.find(jsonRequest.getMethod());
     if (it == jsonRpcHandlers.end()) {
