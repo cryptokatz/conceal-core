@@ -222,10 +222,10 @@ namespace CryptoNote
         s(m_lastBlockHash, "last_block");
       }
 
-      logger(INFO) << operation << "block index";
+      logger(DEBUGGING) << operation << "block index";
       s(m_bs.m_blockIndex, "block_index");
 
-      logger(INFO) << operation << "transaction map";
+      logger(DEBUGGING) << operation << "transaction map";
       if (s.type() == ISerializer::INPUT)
       {
         phmap::BinaryInputArchive ar_in(appendPath(m_bs.m_config_folder, "transactionsmap.dat").c_str());
@@ -237,7 +237,7 @@ namespace CryptoNote
         m_bs.m_transactionMap.dump(ar_out);
       }
 
-      logger(INFO) << operation << "spent keys";
+      logger(DEBUGGING) << operation << "spent keys";
       if (s.type() == ISerializer::INPUT)
       {
         phmap::BinaryInputArchive ar_in(appendPath(m_bs.m_config_folder, "spentkeys.dat").c_str());
@@ -249,13 +249,13 @@ namespace CryptoNote
         m_bs.m_spent_keys.dump(ar_out);
       }
 
-      logger(INFO) << operation << "outputs";
+      logger(DEBUGGING) << operation << "outputs";
       s(m_bs.m_outputs, "outputs");
 
-      logger(INFO) << operation << "multi-signature outputs";
+      logger(DEBUGGING) << operation << "multi-signature outputs";
       s(m_bs.m_multisignatureOutputs, "multisig_outputs");
 
-      logger(INFO) << operation << "deposit index";
+      logger(DEBUGGING) << operation << "deposit index";
       s(m_bs.m_depositIndex, "deposit_index");
 
       auto dur = std::chrono::steady_clock::now() - start;
@@ -513,13 +513,13 @@ namespace CryptoNote
 
     if (load_existing && !m_blocks.empty())
     {
-      logger(INFO, BRIGHT_WHITE) << "Loading blockchain";
+      logger(INFO) << "Loading blockchain";
       BlockCacheSerializer loader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
       loader.load(appendPath(config_folder, m_currency.blocksCacheFileName()));
 
       if (!loader.loaded())
       {
-        logger(WARNING, BRIGHT_YELLOW) << " No actual blockchain cache found, rebuilding internal structures";
+        logger(WARNING) << " No actual blockchain cache found, rebuilding internal structures";
         rebuildCache();
       }
 
@@ -532,7 +532,7 @@ namespace CryptoNote
       m_checkpoints.load_checkpoints();
       logger(Logging::INFO) << "Loading checkpoints";
       m_checkpoints.load_checkpoints_from_dns();
-      logger(Logging::INFO) << "Loading DNS checkpoints";
+      //logger(Logging::INFO) << "Loading DNS checkpoints";
     }
     else
     {
@@ -570,7 +570,7 @@ namespace CryptoNote
     uint32_t lastValidCheckpointHeight = 0;
     if (!checkCheckpoints(lastValidCheckpointHeight))
     {
-      logger(WARNING, BRIGHT_YELLOW) << "Invalid checkpoint. Rollback blockchain to last valid checkpoint at height " << lastValidCheckpointHeight;
+      logger(WARNING) << "Invalid checkpoint. Rollback blockchain to last valid checkpoint at height " << lastValidCheckpointHeight;
       rollbackBlockchainTo(lastValidCheckpointHeight);
     }
 
@@ -639,7 +639,7 @@ namespace CryptoNote
         return false;
       }
     }
-    logger(INFO, BRIGHT_WHITE) << "Checkpoints passed";
+    logger(INFO) << "Checkpoints passed";
     return true;
   }
 
@@ -3129,7 +3129,7 @@ namespace CryptoNote
 
     if (!loader.loaded())
     {
-      logger(WARNING, BRIGHT_YELLOW) << "No actual blockchain indices for BlockchainExplorer found, rebuilding";
+      logger(WARNING) << "No actual blockchain indices for BlockchainExplorer found, rebuilding";
       std::chrono::steady_clock::time_point timePoint = std::chrono::steady_clock::now();
 
       m_paymentIdIndex.clear();

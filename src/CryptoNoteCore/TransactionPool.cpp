@@ -141,11 +141,11 @@ namespace CryptoNote
     uint64_t inputs_amount = m_currency.getTransactionAllInputsAmount(tx, height);
     uint64_t outputs_amount = get_outs_money_amount(tx);
 
-    logger(DEBUGGING, WHITE) << "Processing tx " << id << " with inputs of " << inputs_amount << " and outputs of " << outputs_amount;
+    logger(DEBUGGING) << "Processing tx " << id << " with inputs of " << inputs_amount << " and outputs of " << outputs_amount;
 
     if (outputs_amount > inputs_amount)
     {
-      logger(WARNING, BRIGHT_YELLOW) << "Transaction, with id " << id << " uses more money then it has: uses " << m_currency.formatAmount(outputs_amount) << ", has " << m_currency.formatAmount(inputs_amount);
+      logger(ERROR) << "Transaction, with id " << id << " uses more money then it has: uses " << m_currency.formatAmount(outputs_amount) << ", has " << m_currency.formatAmount(inputs_amount);
       tvc.m_verification_failed = true;
       return false;
     }
@@ -166,20 +166,20 @@ namespace CryptoNote
       uint64_t now = static_cast<uint64_t>(time(nullptr));
       if (ttl.ttl <= now)
       {
-        logger(WARNING, BRIGHT_YELLOW) << "Transaction TTL has already expired: tx = " << id << ", ttl = " << ttl.ttl;
+        logger(DEBUGGING) << "Transaction TTL has already expired: tx = " << id << ", ttl = " << ttl.ttl;
         tvc.m_verification_failed = true;
         return false;
       }
       else if (ttl.ttl - now > m_currency.mempoolTxLiveTime() + m_currency.blockFutureTimeLimit())
       {
-        logger(WARNING, BRIGHT_YELLOW) << "Transaction TTL is out of range: tx = " << id << ", ttl = " << ttl.ttl;
+        logger(DEBUGGING) << "Transaction TTL is out of range: tx = " << id << ", ttl = " << ttl.ttl;
         tvc.m_verification_failed = true;
         return false;
       }
 
       if (fee != 0)
       {
-        logger(WARNING, BRIGHT_YELLOW) << "Transaction with TTL has non-zero fee: tx = " << id << ", fee = " << m_currency.formatAmount(fee);
+        logger(DEBUGGING) << "Transaction with TTL has non-zero fee: tx = " << id << ", fee = " << m_currency.formatAmount(fee);
         tvc.m_verification_failed = true;
         return false;
       }
@@ -191,7 +191,7 @@ namespace CryptoNote
       std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
       if (haveSpentInputs(tx))
       {
-        logger(WARNING) << "Transaction with id= " << id << " used already spent inputs";
+        logger(DEBUGGING) << "Transaction with id= " << id << " used already spent inputs";
         tvc.m_verification_failed = true;
         return false;
       }
@@ -206,7 +206,7 @@ namespace CryptoNote
     {
       if (!keptByBlock)
       {
-        logger(WARNING, BRIGHT_YELLOW) << "tx used wrong inputs, rejected";
+        logger(ERROR) << "tx used wrong inputs, rejected";
         tvc.m_verification_failed = true;
         return false;
       }
@@ -220,7 +220,7 @@ namespace CryptoNote
       bool sizeValid = m_validator.checkTransactionSize(blobSize);
       if (!sizeValid)
       {
-        logger(WARNING, BRIGHT_YELLOW) << "tx too big, rejected";
+        logger(ERROR) << "tx too big, rejected";
         tvc.m_verification_failed = true;
         return false;
       }
@@ -254,7 +254,7 @@ namespace CryptoNote
       auto txd_p = m_transactions.insert(std::move(txd));
       if (!(txd_p.second))
       {
-        logger(WARNING, BRIGHT_YELLOW) << " Transaction already exists at inserting in memory pool";
+        logger(ERROR, BRIGHT_YELLOW) << " Transaction already exists at inserting in memory pool";
         return false;
       }
       m_paymentIdIndex.add(txd.tx);
@@ -493,7 +493,7 @@ namespace CryptoNote
 
       if (outputs_amount > inputs_amount)
       {
-        logger(WARNING, BRIGHT_YELLOW) << "Transaction, with id " << txd.id << " uses more money than it has: uses " << m_currency.formatAmount(outputs_amount) << ", has " << m_currency.formatAmount(inputs_amount)
+        logger(DEBUGGING, BRIGHT_YELLOW) << "Transaction, with id " << txd.id << " uses more money than it has: uses " << m_currency.formatAmount(outputs_amount) << ", has " << m_currency.formatAmount(inputs_amount)
                                        << " and will not be included in the block template";
         continue;
       }
@@ -562,7 +562,7 @@ namespace CryptoNote
   {
     if (!Tools::create_directories_if_necessary(m_config_folder))
     {
-      logger(INFO) << "Failed to create data directory: " << m_config_folder;
+      logger(ERROR) << "Failed to create data directory: " << m_config_folder;
       return false;
     }
 
@@ -570,7 +570,7 @@ namespace CryptoNote
 
     if (!storeToBinaryFile(*this, state_file_path))
     {
-      logger(INFO) << "Failed to serialize memory pool to file " << state_file_path;
+      logger(ERROR) << "Failed to serialize memory pool to file " << state_file_path;
     }
 
     m_paymentIdIndex.clear();
@@ -665,11 +665,11 @@ namespace CryptoNote
         {
           if (ttlExpired)
           {
-            logger(INFO) << "Tx " << it->id << " removed from tx pool due to expired TTL, TTL : " << ttlIt->second;
+            logger(DEBUGGING) << "Tx " << it->id << " removed from tx pool due to expired TTL, TTL : " << ttlIt->second;
           }
           else
           {
-            logger(INFO) << "Tx " << it->id << " removed from tx pool due to outdated, age: " << txAge;
+            logger(DEBUGGING) << "Tx " << it->id << " removed from tx pool due to outdated, age: " << txAge;
           }
 
           m_recentlyDeletedTransactions.emplace(it->id, now);
@@ -710,14 +710,14 @@ namespace CryptoNote
         auto it = m_spent_key_images.find(txin.keyImage);
         if (!(it != m_spent_key_images.end()))
         {
-          logger(ERROR, BRIGHT_RED) << "failed to find transaction input in key images. img=" << txin.keyImage << std::endl
+          logger(ERROR) << "failed to find transaction input in key images. img=" << txin.keyImage << std::endl
                                     << "transaction id = " << tx_id;
           return false;
         }
         std::unordered_set<Crypto::Hash> &key_image_set = it->second;
         if (!(!key_image_set.empty()))
         {
-          logger(ERROR, BRIGHT_RED) << "empty key_image set, img=" << txin.keyImage << std::endl
+          logger(ERROR) << "empty key_image set, img=" << txin.keyImage << std::endl
                                     << "transaction id = " << tx_id;
           return false;
         }
@@ -725,7 +725,7 @@ namespace CryptoNote
         auto it_in_set = key_image_set.find(tx_id);
         if (!(it_in_set != key_image_set.end()))
         {
-          logger(ERROR, BRIGHT_RED) << "transaction id not found in key_image set, img=" << txin.keyImage << std::endl
+          logger(ERROR) << "transaction id not found in key_image set, img=" << txin.keyImage << std::endl
                                     << "transaction id = " << tx_id;
           return false;
         }
@@ -763,7 +763,7 @@ namespace CryptoNote
         std::unordered_set<Crypto::Hash> &kei_image_set = m_spent_key_images[txin.keyImage];
         if (!(keptByBlock || kei_image_set.size() == 0))
         {
-          logger(ERROR, BRIGHT_RED)
+          logger(ERROR)
               << "internal error: keptByBlock=" << keptByBlock
               << ",  kei_image_set.size()=" << kei_image_set.size() << ENDL
               << "txin.keyImage=" << txin.keyImage << ENDL << "tx_id=" << id;
@@ -772,7 +772,7 @@ namespace CryptoNote
         auto ins_res = kei_image_set.insert(id);
         if (!(ins_res.second))
         {
-          logger(ERROR, BRIGHT_RED) << "internal error: try to insert duplicate iterator in key_image set";
+          logger(ERROR) << "internal error: try to insert duplicate iterator in key_image set";
           return false;
         }
       }

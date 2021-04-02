@@ -342,7 +342,7 @@ int main(int argc, char* argv[])
           return 1;
         }
         rpcServer.setFeeAddress(addr_str, acc);
-        logger(INFO, BRIGHT_YELLOW) << "Remote node fee address set: " << addr_str;
+        logger(INFO) << "Remote node fee address: " << addr_str;
 
       }
 	  }
@@ -353,12 +353,12 @@ int main(int argc, char* argv[])
       std::string vk_str = command_line::get_arg(vm, arg_set_view_key);
 	    if (!vk_str.empty()) {
         rpcServer.setViewKey(vk_str);
-        logger(INFO, BRIGHT_YELLOW) << "Secret view key set: " << vk_str;
+        logger(INFO) << "Secret view key: " << vk_str;
       }
     }
  
     rpcServer.start(rpcConfig.bindIp, rpcConfig.bindPort);
-    logger(INFO) << "Core rpc server started ok";
+    logger(INFO) << "Core RPC server started";
 
     Tools::SignalHandler::install([&dch, &p2psrv] {
       dch.stop_handling();
