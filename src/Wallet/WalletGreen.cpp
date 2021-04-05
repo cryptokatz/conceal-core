@@ -334,13 +334,7 @@ namespace CryptoNote
 
     uint64_t blockCount = getBlockCount();
 
-    /* Is the deposit unlocked */
-    if (deposit.unlockHeight > blockCount)
-    {
-      throw std::system_error(make_error_code(CryptoNote::error::DEPOSIT_LOCKED));
-    }
-
-    /* Create the transaction */
+        /* Create the transaction */
     std::unique_ptr<ITransaction> transaction = createTransaction();
 
     std::vector<TransactionOutputInformation> selectedTransfers;
@@ -356,11 +350,6 @@ namespace CryptoNote
     m_logger(DEBUGGING, WHITE) << "found money " << foundMoney;
 
     container->getTransfer(deposit.transactionHash, deposit.outputInTransaction, transfer, state);
-
-    if (state != ITransfersContainer::TransferState::TransferAvailable) 
-    {
-      throw std::system_error(make_error_code(CryptoNote::error::DEPOSIT_LOCKED));
-    }
 
     selectedTransfers.push_back(std::move(transfer));
     m_logger(DEBUGGING, BRIGHT_WHITE) << "Withdraw deposit, id " << depositId << " found transfer for " << transfer.amount << " with a global output index of " << transfer.globalOutputIndex;

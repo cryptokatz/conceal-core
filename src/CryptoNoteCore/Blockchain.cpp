@@ -2921,9 +2921,7 @@ namespace CryptoNote
     const Transaction &outputTransaction = m_blocks[outputIndex.transactionIndex.block].transactions[outputIndex.transactionIndex.transaction].tx;
     if (!is_tx_spendtime_unlocked(outputTransaction.unlockTime))
     {
-      logger(DEBUGGING) << "Transaction << " << transactionHash << " contains multisignature input which points to a locked transaction.";
-
-      return false;
+      logger(INFO) << "SKIPPING CHECK: Transaction << " << transactionHash << " contains multisignature input which points to a locked transaction.";
     }
 
     assert(outputTransaction.outputs[outputIndex.outputIndex].amount == input.amount);
@@ -2944,8 +2942,7 @@ namespace CryptoNote
 
     if (output.term != 0 && outputIndex.transactionIndex.block + output.term > getCurrentBlockchainHeight())
     {
-      logger(DEBUGGING) << "Transaction << " << transactionHash << " contains multisignature input that spends locked deposit output";
-      return false;
+      logger(INFO) << "SKIPPING CHECK: Transaction << " << transactionHash << " contains multisignature input that spends locked deposit output";
     }
 
     size_t inputSignatureIndex = 0;
