@@ -882,6 +882,11 @@ namespace CryptoNote
     uint64_t block_index = m_blocks.size();
     uint8_t block_major_version = get_block_major_version_for_height(block_index + 1);
 
+    if (block_index < 15000) 
+    {
+      return 100;
+    }
+
     if (block_major_version >= 8)
     {
       return m_currency.nextDifficultyLWMA1(timestamps, commulative_difficulties, block_index);
@@ -1197,6 +1202,11 @@ namespace CryptoNote
 
     uint32_t block_index = m_blocks.size();
     uint8_t block_major_version = get_block_major_version_for_height(block_index + 1);
+
+    if (block_index < 15000)
+    {
+      return 100;
+    }
 
     if (block_major_version >= 8)
     {
