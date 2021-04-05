@@ -884,7 +884,7 @@ namespace CryptoNote
 
     if (block_index < 15000) 
     {
-      return 100;
+      return 15;
     }
 
     if (block_major_version >= 8)
@@ -1205,7 +1205,7 @@ namespace CryptoNote
 
     if (block_index < 15000)
     {
-      return 100;
+      return 15;
     }
 
     if (block_major_version >= 8)
