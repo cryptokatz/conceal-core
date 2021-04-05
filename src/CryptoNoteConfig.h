@@ -103,11 +103,11 @@ namespace CryptoNote
 		const uint64_t UPGRADE_HEIGHT = 1;
 		const uint64_t UPGRADE_HEIGHT_V2 = 1;
 		const uint64_t UPGRADE_HEIGHT_V3 = 12750;	  /* Cryptonight-Fast */
-		const uint64_t UPGRADE_HEIGHT_V4 = 12861;	  /* MixIn 2 */
-		const uint64_t UPGRADE_HEIGHT_V5 = 12861;	  /* Deposits 2.0, Investments 1.0 */
-		const uint64_t UPGRADE_HEIGHT_V6 = 12861;	  /* LWMA3 */
-		const uint64_t UPGRADE_HEIGHT_V7 = 12861;	  /* Cryptoight Conceal */
-		const uint64_t UPGRADE_HEIGHT_V8 = 12861;	  /* LWMA1, CN-GPU, Halving */
+		const uint64_t UPGRADE_HEIGHT_V4 = 12862;	  /* MixIn 2 */
+		const uint64_t UPGRADE_HEIGHT_V5 = 12863;	  /* Deposits 2.0, Investments 1.0 */
+		const uint64_t UPGRADE_HEIGHT_V6 = 12864;	  /* LWMA3 */
+		const uint64_t UPGRADE_HEIGHT_V7 = 12865;	  /* Cryptoight Conceal */
+		const uint64_t UPGRADE_HEIGHT_V8 = 12866;	  /* LWMA1, CN-GPU, Halving */
 		const unsigned UPGRADE_VOTING_THRESHOLD = 90; // percent
 		const size_t UPGRADE_VOTING_WINDOW = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
 		const size_t UPGRADE_WINDOW = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
