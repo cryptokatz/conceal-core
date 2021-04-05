@@ -66,7 +66,7 @@ namespace CryptoNote
 		static_assert(2 * DIFFICULTY_CUT <= DIFFICULTY_WINDOW - 2, "Bad DIFFICULTY_WINDOW or DIFFICULTY_CUT");
 
 		const uint64_t DEPOSIT_MIN_AMOUNT = 1 * COIN;
-		const uint32_t DEPOSIT_MIN_TERM = 5040;				 /* one week */
+		const uint32_t DEPOSIT_MIN_TERM = 1;				 /* one week */
 		const uint32_t DEPOSIT_MAX_TERM = 1 * 12 * 21900;	 /* legacy deposts - one year */
 		const uint32_t DEPOSIT_MAX_TERM_V1 = 64800 * 20;	 /* five years */
 		const uint32_t DEPOSIT_MIN_TERM_V3 = 21900;			 /* consensus 2019 - one month */
