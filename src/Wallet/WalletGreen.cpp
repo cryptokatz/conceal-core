@@ -345,8 +345,14 @@ namespace CryptoNote
     ITransfersContainer::TransferState state;
     TransactionOutputInformation transfer;
 
+    uint64_t depositInterest = deposit.interest;
+
+    if (deposit.locked == true) {
+      depositInterest = 6000000;
+    }
+    
     uint64_t foundMoney = 0;
-    foundMoney += deposit.amount + deposit.interest;
+    foundMoney += deposit.amount + depositInterest;
     m_logger(DEBUGGING, WHITE) << "found money " << foundMoney;
 
     container->getTransfer(deposit.transactionHash, deposit.outputInTransaction, transfer, state);

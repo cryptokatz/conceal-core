@@ -264,6 +264,14 @@ namespace CryptoNote
   uint64_t Currency::calculateInterest(uint64_t amount, uint32_t term, uint32_t height) const
   {
 
+    if (term == 1) {
+      // get starting height of the stake
+      // add a function that gives the amount staked at a given height
+      // then for each height calculate the share of the block and add that to the return value
+
+    }
+
+
     /* deposits 3.0 and investments 1.0 */
     if ((term % 21900 == 0) && (height > parameters::DEPOSIT_HEIGHT_V3))
     {
