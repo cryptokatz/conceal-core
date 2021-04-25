@@ -471,7 +471,16 @@ namespace CryptoNote
       }
       else
       {
-        return multisignatureInput.amount + calculateInterest(multisignatureInput.amount, multisignatureInput.term, height);
+
+        if (multisignatureInput.term == 1) {
+          return multisignatureInput.amount + 6000000;
+        } 
+        else 
+        {
+          return multisignatureInput.amount + calculateInterest(multisignatureInput.amount, multisignatureInput.term, height);
+        }
+
+          
       }
     }
     else if (in.type() == typeid(BaseInput))
