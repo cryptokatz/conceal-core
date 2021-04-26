@@ -27,6 +27,7 @@ struct MultisignatureInput {
   uint8_t signatureCount;
   uint32_t outputIndex;
   uint32_t term;
+  uint32_t start; //KATZ
 };
 
 struct KeyOutput {

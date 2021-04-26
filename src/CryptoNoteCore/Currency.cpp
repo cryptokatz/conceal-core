@@ -465,13 +465,15 @@ namespace CryptoNote
     else if (in.type() == typeid(MultisignatureInput))
     {
       const MultisignatureInput &multisignatureInput = boost::get<MultisignatureInput>(in);
+
+      logger(INFO) << "MSigIn details," << " Amount: " << multisignatureInput.amount << " Start: " << multisignatureInput.start << " Height: " << height;
+
       if (multisignatureInput.term == 0)
       {
         return multisignatureInput.amount;
       }
       else
       {
-
         if (multisignatureInput.term == 1) {
           return multisignatureInput.amount + 6000000;
         } 

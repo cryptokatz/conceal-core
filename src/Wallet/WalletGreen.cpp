@@ -360,7 +360,7 @@ namespace CryptoNote
     selectedTransfers.push_back(std::move(transfer));
     m_logger(DEBUGGING, BRIGHT_WHITE) << "Withdraw deposit, id " << depositId << " found transfer for " << transfer.amount << " with a global output index of " << transfer.globalOutputIndex;
 
-    std::vector<MultisignatureInput> inputs = prepareMultisignatureInputs(selectedTransfers);
+    std::vector<MultisignatureInput> inputs = prepareMultisignatureInputs(selectedTransfers, deposit.height);
 
     for (const auto &input : inputs)
     {
@@ -437,7 +437,7 @@ namespace CryptoNote
     return txKey;
   }
 
-  std::vector<MultisignatureInput> WalletGreen::prepareMultisignatureInputs(const std::vector<TransactionOutputInformation> &selectedTransfers)
+  std::vector<MultisignatureInput> WalletGreen::prepareMultisignatureInputs(const std::vector<TransactionOutputInformation> &selectedTransfers, uint64_t &start)
   {
     std::vector<MultisignatureInput> inputs;
     inputs.reserve(selectedTransfers.size());
@@ -452,6 +452,7 @@ namespace CryptoNote
       input.signatureCount = output.requiredSignatures;
       input.outputIndex = output.globalOutputIndex;
       input.term = output.term;
+      input.start = start;
 
       inputs.emplace_back(std::move(input));
     }

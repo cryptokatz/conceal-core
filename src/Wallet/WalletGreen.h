@@ -36,7 +36,7 @@ public:
   /* Deposit related functions */
   virtual void createDeposit(uint64_t amount, uint64_t term, std::string sourceAddress, std::string destinationAddress, std::string &transactionHash) override;
   virtual void withdrawDeposit(DepositId depositId, std::string &transactionHash) override;
-  std::vector<MultisignatureInput> prepareMultisignatureInputs(const std::vector<TransactionOutputInformation> &selectedTransfers);
+  std::vector<MultisignatureInput> prepareMultisignatureInputs(const std::vector<TransactionOutputInformation> &selectedTransfers, uint64_t &start);
 
   
   virtual void initialize(const std::string& path, const std::string& password) override;
