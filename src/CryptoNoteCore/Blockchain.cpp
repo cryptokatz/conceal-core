@@ -882,7 +882,7 @@ namespace CryptoNote
     uint64_t block_index = m_blocks.size();
     uint8_t block_major_version = get_block_major_version_for_height(block_index + 1);
 
-    if (block_index < 15000) 
+    if (block_index < 55000) 
     {
       return 15;
     }
@@ -1203,7 +1203,7 @@ namespace CryptoNote
     uint32_t block_index = m_blocks.size();
     uint8_t block_major_version = get_block_major_version_for_height(block_index + 1);
 
-    if (block_index < 15000)
+    if (block_index < 55000)
     {
       return 15;
     }

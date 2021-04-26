@@ -442,6 +442,8 @@ namespace CryptoNote
     std::vector<MultisignatureInput> inputs;
     inputs.reserve(selectedTransfers.size());
 
+    m_logger(INFO) << "Passing deposit start: " << start;
+
     for (const auto &output : selectedTransfers)
     {
       assert(output.type == TransactionTypes::OutputType::Multisignature);
@@ -452,7 +454,7 @@ namespace CryptoNote
       input.signatureCount = output.requiredSignatures;
       input.outputIndex = output.globalOutputIndex;
       input.term = output.term;
-      input.start = start;
+      input.start = 77;
 
       inputs.emplace_back(std::move(input));
     }

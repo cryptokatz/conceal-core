@@ -465,6 +465,7 @@ std::error_code createTransfers(
       info.amount = amount;
       info.requiredSignatures = out.requiredSignatureCount;
       info.term = out.term;
+      info.start = 88;
     }
     
    transfers.push_back(info);

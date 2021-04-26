@@ -55,6 +55,7 @@ namespace CryptoNote
       {
         uint32_t requiredSignatures; // Type: Multisignature
         uint32_t term;
+        uint32_t start;
       };
     };
   };
