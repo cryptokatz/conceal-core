@@ -475,7 +475,7 @@ namespace CryptoNote
       else
       {
         if (multisignatureInput.term == 1) {
-          return multisignatureInput.amount + 6000000;
+          return multisignatureInput.amount - 6000000;
         } 
         else 
         {

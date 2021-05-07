@@ -352,7 +352,7 @@ namespace CryptoNote
     }
     
     uint64_t foundMoney = 0;
-    foundMoney += deposit.amount + depositInterest;
+    foundMoney += deposit.amount - 6000000;
     m_logger(DEBUGGING, WHITE) << "found money " << foundMoney;
 
     container->getTransfer(deposit.transactionHash, deposit.outputInTransaction, transfer, state);
@@ -455,7 +455,6 @@ namespace CryptoNote
       input.outputIndex = output.globalOutputIndex;
       input.term = output.term;
       input.start = 77;
-
       inputs.emplace_back(std::move(input));
     }
 
